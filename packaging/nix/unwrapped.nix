@@ -2,6 +2,7 @@
   lib,
   stdenv,
   src,
+  llvmPackages,
   rustPlatform,
   fetchPnpmDeps,
   pnpm_12,
@@ -42,15 +43,21 @@ stdenv.mkDerivation (finalAttrs: {
     sable-wasm-bindgen-cli
     binaryen
     lld
+    llvmPackages.clang-unwrapped
     rustPlatform.rust.rustc
     rustPlatform.rust.cargo
     rustPlatform.cargoSetupHook
   ];
 
+  hardeningDisable = [ "all" ];
+
   env = {
     SABLE_FOSS = "1";
     VITE_APP_VERSION = finalAttrs.version;
     VITE_BUILD_HASH = src.shortRev or src.dirtyShortRev or "";
+
+    CC_wasm32_unknown_unknown = "${llvmPackages.clang-unwrapped}/bin/clang";
+    CFLAGS_wasm32_unknown_unknown = "-fno-stack-protector";
   };
 
   buildPhase = ''
